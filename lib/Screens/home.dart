@@ -26,6 +26,7 @@ class _HomeScreen1State extends State<HomeScreen1> {
   final ProductService ps = ProductService();
   late Future<List<dynamic>> productsList;
   late bool _localDarkMode;
+  final TextEditingController _searchController = TextEditingController();
 
   final List<String> categories = [
     'All',
@@ -40,9 +41,16 @@ class _HomeScreen1State extends State<HomeScreen1> {
 
   @override
   void initState() {
+    // TODO: implement initState
     super.initState();
     productsList = ps.getproducts();
     _localDarkMode = widget.isDarkMode;
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
   }
 
   @override
@@ -76,8 +84,10 @@ class _HomeScreen1State extends State<HomeScreen1> {
                   backgroundColor: Colors.white,
                   child: Icon(Icons.person, size: 50, color: Colors.lightGreen),
                 ),
-                accountName: Text('Samar',
-                    style: TextStyle(fontWeight: FontWeight.bold)),
+                accountName: Text(
+                  'Samar',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
                 accountEmail: Text('samar@gmail.com'),
               ),
               ListTile(
@@ -85,7 +95,8 @@ class _HomeScreen1State extends State<HomeScreen1> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                        builder: (context) => const ProfilePage()),
+                      builder: (context) => const ProfilePage(),
+                    ),
                   );
                 },
                 leading: const Icon(Icons.account_circle),
@@ -96,7 +107,9 @@ class _HomeScreen1State extends State<HomeScreen1> {
                 onTap: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => const Cartscreen()),
+                    MaterialPageRoute(
+                      builder: (context) => const Cartscreen(),
+                    ),
                   );
                 },
                 leading: const Icon(Icons.shopping_cart),
@@ -112,8 +125,10 @@ class _HomeScreen1State extends State<HomeScreen1> {
                     context: context,
                     applicationName: 'Your Things',
                     applicationVersion: '5.2.2',
-                    applicationIcon:
-                        Image.asset('assets/images/logoshop.png', scale: 3.2),
+                    applicationIcon: Image.asset(
+                      'assets/images/logoshop.png',
+                      scale: 3.2,
+                    ),
                     children: const [
                       Padding(
                         padding: EdgeInsets.only(top: 40),
@@ -149,30 +164,36 @@ class _HomeScreen1State extends State<HomeScreen1> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                        builder: (context) => const Settingscreen()),
+                      builder: (context) => const Settingscreen(),
+                    ),
                   );
                 },
-                leading: const Icon(Icons.settings, color: Colors.red),
+                leading: Icon(Icons.settings, color: Colors.red[900]),
                 title: const Text('Setting'),
               ),
               const Divider(height: 5),
               const Spacer(),
               ListTile(
-                leading: const Icon(Icons.logout, color: Colors.red),
-                title:
-                    const Text('Logout', style: TextStyle(color: Colors.red)),
+                leading: Icon(Icons.logout, color: Colors.red[900]),
+                title: Text(
+                  'Logout',
+                  style: TextStyle(color: Colors.red[900]),
+                ),
                 onTap: () {
                   Navigator.pushReplacement(
                     context,
                     MaterialPageRoute(
-                        builder: (context) => const Loginscreen()),
+                      builder: (context) => const Loginscreen(),
+                    ),
                   );
                 },
               ),
               const Padding(
                 padding: EdgeInsets.all(12),
-                child:
-                    Text('version 1.1.0', style: TextStyle(color: Colors.grey)),
+                child: Text(
+                  'version 1.1.0',
+                  style: TextStyle(color: Colors.grey),
+                ),
               ),
             ],
           ),
@@ -180,31 +201,46 @@ class _HomeScreen1State extends State<HomeScreen1> {
       ),
       body: Column(
         children: [
-          // 1. شريط البحث
           Padding(
             padding: const EdgeInsets.all(12.0),
             child: TextField(
+              controller: _searchController,
               onChanged: (value) {
                 setState(() {
-                  searchQuery = value.toLowerCase();
+                  searchQuery = value.trim().toLowerCase();
                 });
               },
               decoration: InputDecoration(
                 hintText: 'Search for products...',
-                prefixIcon: const Icon(Icons.search, color: Colors.grey),
+                prefixIcon: const Icon(Icons.search, color: Colors.lightGreen),
+                suffixIcon: searchQuery.isNotEmpty
+                    ? IconButton(
+                        icon: const Icon(Icons.clear, color: Colors.grey),
+                        onPressed: () {
+                          _searchController.clear();
+                          setState(() {
+                            searchQuery = '';
+                          });
+                        },
+                      )
+                    : null,
                 filled: true,
-                fillColor: _localDarkMode ? Colors.grey : Colors.grey,
+                fillColor: _localDarkMode
+                    ? Colors.grey.shade800
+                    : Colors.grey.shade200,
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(30),
                   borderSide: BorderSide.none,
                 ),
-                contentPadding:
-                    const EdgeInsets.symmetric(vertical: 0, horizontal: 20),
+                contentPadding: const EdgeInsets.symmetric(
+                  vertical: 0,
+                  horizontal: 20,
+                ),
               ),
             ),
           ),
 
-          // 2. شريط الأقسام الأفقي الدائري
+          // شريط الأقسام الأفقي
           SizedBox(
             height: 45,
             child: ListView.builder(
@@ -223,11 +259,15 @@ class _HomeScreen1State extends State<HomeScreen1> {
                     },
                     child: Container(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 20, vertical: 10),
+                        horizontal: 20,
+                        vertical: 10,
+                      ),
                       decoration: BoxDecoration(
                         color: isSelected
                             ? Colors.lightGreen
-                            : (_localDarkMode ? Colors.grey : Colors.grey),
+                            : (_localDarkMode
+                                ? Colors.grey.shade800
+                                : Colors.grey.shade200),
                         borderRadius: BorderRadius.circular(25),
                       ),
                       child: Center(
@@ -251,13 +291,11 @@ class _HomeScreen1State extends State<HomeScreen1> {
               },
             ),
           ),
-
           const SizedBox(height: 10),
-
-          // 3. استدعاء صفحة المنتجات وتمرير القسم المختار لها مباشرة
           Expanded(
             child: Productscreen(
               selectedCategory: categories[selectedCategoryIndex],
+              searchQuery: searchQuery,
             ),
           ),
         ],

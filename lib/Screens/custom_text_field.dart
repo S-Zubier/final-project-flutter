@@ -1,37 +1,71 @@
 import 'package:flutter/material.dart';
 
-// قمنا بتغيير الاسم إلى CustomTextField ليكون معبراً أكثر كـ Widget احترافي
-class CustomTextField extends StatelessWidget {
-  final String labelData;
+class CustomTextField extends StatefulWidget {
+  final String label;
   final TextEditingController controller;
-  final String? Function(String?)? validator;
   final bool isPassword;
+  final TextInputType keyboardType;
+  final IconData? prefixIcon;
+  final String? Function(String?)? customValidator;
 
   const CustomTextField({
     super.key,
-    required this.labelData,
+    required this.label,
     required this.controller,
-    required this.validator,
-    this.isPassword = false, // القيمة الافتراضية ليست كلمة مرور
+    this.isPassword = false,
+    this.keyboardType = TextInputType.text,
+    this.prefixIcon,
+    this.customValidator,
   });
 
   @override
+  State<CustomTextField> createState() => _CustomTextFieldState();
+}
+
+class _CustomTextFieldState extends State<CustomTextField> {
+  late bool _obscureText;
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    _obscureText = widget.isPassword;
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 15.0), // حشو متناسق للحقول
-      child: TextFormField(
-        controller: controller,
-        validator: validator,
-        obscureText: isPassword,
-        decoration: InputDecoration(
-          labelText: labelData,
-          filled: true,
-          fillColor: Colors.grey[200], // خلفية رمادية خفيفة ومريحة للعين
-          border: const OutlineInputBorder(
-            borderRadius: BorderRadius.all(Radius.circular(10)),
-          ),
+    return TextFormField(
+      controller: widget.controller,
+      obscureText: _obscureText,
+      keyboardType: widget.keyboardType,
+      decoration: InputDecoration(
+        labelText: widget.label,
+        prefixIcon: widget.prefixIcon != null ? Icon(widget.prefixIcon) : null,
+        border: const OutlineInputBorder(
+          borderRadius: BorderRadius.all(Radius.circular(10)),
         ),
+        suffixIcon: widget.isPassword
+            ? IconButton(
+                icon: Icon(
+                  _obscureText ? Icons.visibility_off : Icons.visibility,
+                ),
+                onPressed: () {
+                  setState(() {
+                    _obscureText = !_obscureText;
+                  });
+                },
+              )
+            : null,
       ),
+      validator: (value) {
+        if (value == null || value.trim().isEmpty) {
+          return 'Please Enter Your ${widget.label}';
+        }
+        if (widget.customValidator != null) {
+          return widget.customValidator!(value);
+        }
+        return null;
+      },
     );
   }
 }
